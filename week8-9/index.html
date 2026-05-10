@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voyage Survival Game</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:linear-gradient(to bottom,#0b3d91,#145da0,#1e81b0);
+color:white;
+text-align:center;
+overflow-x:hidden;
+}
+
+.container{
+padding:20px;
+max-width:1000px;
+margin:auto;
+}
+
+h1{
+font-size:45px;
+margin-top:10px;
+}
+
+.ship{
+font-size:120px;
+animation:float 2s infinite;
+}
+
+@keyframes float{
+0%{transform:translateY(0px);}
+50%{transform:translateY(-10px);}
+100%{transform:translateY(0px);}
+}
+
+.stats{
+display:flex;
+justify-content:center;
+gap:20px;
+flex-wrap:wrap;
+margin:20px;
+font-size:22px;
+}
+
+.card{
+background:rgba(255,255,255,.15);
+padding:20px;
+border-radius:20px;
+margin-top:20px;
+backdrop-filter:blur(5px);
+}
+
+.question{
+font-size:28px;
+margin-bottom:20px;
+}
+
+.choices{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:15px;
+}
+
+.choice{
+background:white;
+color:black;
+padding:18px;
+border-radius:15px;
+font-size:20px;
+cursor:pointer;
+transition:.3s;
+}
+
+.choice:hover{
+background:#ffd166;
+transform:scale(1.05);
+}
+
+button{
+padding:15px 30px;
+font-size:22px;
+border:none;
+border-radius:15px;
+background:#ffd166;
+font-weight:bold;
+cursor:pointer;
+margin-top:20px;
+}
+
+.result{
+font-size:24px;
+margin-top:20px;
+min-height:50px;
+}
+
+.badge{
+font-size:120px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container" id="startScreen">
+
+<h1>🚢 VOYAGE SURVIVAL GAME 🚢</h1>
+<h2>Week 8-9: Panahon ng Paggalugad at Kolonyalismo</h2>
+
+<div class="ship">⛵</div>
+
+<p style="font-size:24px;">
+Ikaw ay isang explorer noong Panahon ng Paggalugad.
+Kailangan mong makaligtas sa dagat habang sumasagot sa AP8 challenges!
+</p>
+
+<button onclick="startGame()">🌍 Simulan ang Paglalayag</button>
+
+</div>
+
+<div class="container" id="gameScreen" style="display:none;">
+
+<h1>🌊 Explorer Journey</h1>
+
+<div class="stats">
+<div>❤️ Crew: <span id="crew">100</span></div>
+<div>🍞 Supplies: <span id="food">100</span></div>
+<div>🪙 Gold: <span id="gold">0</span></div>
+<div>⭐ Progress: <span id="progress">0</span>/10</div>
+</div>
+
+<div class="ship" id="shipEmoji">⛵</div>
+
+<div class="card">
+<div class="question" id="question"></div>
+<div class="choices" id="choices"></div>
+<div class="result" id="result"></div>
+</div>
+
+</div>
+
+<div class="container" id="winScreen" style="display:none;">
+
+<h1>🏆 TAGUMPAY! 🏆</h1>
+
+<div class="badge">🌍</div>
+
+<p style="font-size:28px;">
+Matagumpay mong natapos ang paglalayag!
+</p>
+
+<button onclick="location.reload()">🔁 Play Again</button>
+
+</div>
+
+<div class="container" id="loseScreen" style="display:none;">
+
+<h1>💀 NABIGO ANG EKSPEDISYON 💀</h1>
+
+<div class="badge">🌊</div>
+
+<p style="font-size:24px;">
+Naubos ang crew o supplies mo sa paglalayag.
+</p>
+
+<button onclick="location.reload()">🔁 Try Again</button>
+
+</div>
+
+<script>
+
+let crew = 100;
+let food = 100;
+let gold = 0;
+let current = 0;
+
+const questions = [
+{
+q:"Ano ang pangunahing dahilan ng paggalugad ng Europe?",
+choices:["Maghanap ng bagong ruta","Magbakasyon","Magtayo ng mall","Maglaro"],
+a:"Maghanap ng bagong ruta"
+},
+{
+q:"Sino ang nakarating sa India sa pamamagitan ng Africa?",
+choices:["Vasco da Gama","Columbus","Magellan","Newton"],
+a:"Vasco da Gama"
+},
+{
+q:"Sino ang unang nakaikot sa mundo?",
+choices:["Magellan","Da Vinci","Martin Luther","Galileo"],
+a:"Magellan"
+},
+{
+q:"Ano ang ibig sabihin ng kolonyalismo?",
+choices:["Pananakop ng bansa","Pagluluto","Pag-aaral","Pagpipinta"],
+a:"Pananakop ng bansa"
+},
+{
+q:"Anong produkto ang hinahanap ng Europe sa Asya?",
+choices:["Spices","Cellphone","Kotse","TV"],
+a:"Spices"
+},
+{
+q:"Anong pangyayari noong 1453 ang nakaapekto sa ruta ng kalakalan?",
+choices:["Pagbagsak ng Constantinople","World War","Bagyo","Lindol"],
+a:"Pagbagsak ng Constantinople"
+},
+{
+q:"Saan nakarating si Columbus noong 1492?",
+choices:["Americas","Japan","Australia","Russia"],
+a:"Americas"
+},
+{
+q:"Ano ang naging epekto ng kolonyalismo?",
+choices:["Pagbabago sa kultura","Walang epekto","Paglipad","Paglaho ng dagat"],
+a:"Pagbabago sa kultura"
+},
+{
+q:"Ano ang mahalagang gamit sa paglalayag noon?",
+choices:["Compass","Laptop","TV","Speaker"],
+a:"Compass"
+},
+{
+q:"Ano ang tawag sa paglalayag upang tuklasin ang bagong lugar?",
+choices:["Eksplorasyon","Pagluluto","Pagtatanim","Pag-awit"],
+a:"Eksplorasyon"
+}
+];
+
+function startGame(){
+document.getElementById("startScreen").style.display="none";
+document.getElementById("gameScreen").style.display="block";
+showQuestion();
+}
+
+function showQuestion(){
+
+if(crew<=0 || food<=0){
+loseGame();
+return;
+}
+
+if(current>=questions.length){
+winGame();
+return;
+}
+
+const q = questions[current];
+
+document.getElementById("question").innerText = q.q;
+
+const choicesDiv = document.getElementById("choices");
+choicesDiv.innerHTML="";
+
+let shuffled=[...q.choices].sort(()=>Math.random()-0.5);
+
+shuffled.forEach(choice=>{
+
+const btn=document.createElement("div");
+btn.className="choice";
+btn.innerText=choice;
+btn.onclick=()=>checkAnswer(choice);
+
+choicesDiv.appendChild(btn);
+
+});
+
+}
+
+function checkAnswer(choice){
+
+const q = questions[current];
+
+if(choice===q.a){
+
+gold += 20;
+food += 5;
+crew += 5;
+
+if(food>100) food=100;
+if(crew>100) crew=100;
+
+document.getElementById("result").innerHTML =
+"✅ Tama! Nakahanap kayo ng supplies at gold!";
+
+document.getElementById("shipEmoji").innerText="🚢";
+
+}else{
+
+crew -= 20;
+food -= 15;
+
+document.getElementById("result").innerHTML =
+"❌ Mali! Tinamaan kayo ng bagyo at nawalan ng supplies!";
+
+document.getElementById("shipEmoji").innerText="🌊";
+
+}
+
+current++;
+
+updateStats();
+
+setTimeout(()=>{
+showQuestion();
+document.getElementById("result").innerHTML="";
+document.getElementById("shipEmoji").innerText="⛵";
+},1800);
+
+}
+
+function updateStats(){
+document.getElementById("crew").innerText=crew;
+document.getElementById("food").innerText=food;
+document.getElementById("gold").innerText=gold;
+document.getElementById("progress").innerText=current;
+}
+
+function winGame(){
+document.getElementById("gameScreen").style.display="none";
+document.getElementById("winScreen").style.display="block";
+}
+
+function loseGame(){
+document.getElementById("gameScreen").style.display="none";
+document.getElementById("loseScreen").style.display="block";
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="fil">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>AP8 Runner Game</title>
+
+<style>
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(#87ceeb, #f7e8a4);
+  touch-action: manipulation;
+}
+
+#game {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#ground {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 110px;
+  background: #b87333;
+  border-top: 8px solid #6d4c41;
+}
+
+#player {
+  position: absolute;
+  left: 60px;
+  bottom: 110px;
+  font-size: 58px;
+  width: 70px;
+  height: 70px;
+  text-align: center;
+  line-height: 70px;
+  z-index: 3;
+}
+
+.obstacle {
+  position: absolute;
+  bottom: 110px;
+  font-size: 48px;
+  width: 60px;
+  height: 60px;
+  text-align: center;
+  line-height: 60px;
+  z-index: 2;
+}
+
+.term {
+  position: absolute;
+  left: 100vw;
+  bottom: 185px;
+  padding: 8px 12px;
+  background: white;
+  border: 3px solid #ff9800;
+  border-radius: 14px;
+  font-weight: bold;
+  font-size: 16px;
+  white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(0,0,0,.25);
+  z-index: 2;
+}
+
+#score {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: white;
+  padding: 9px 14px;
+  border-radius: 14px;
+  font-size: 19px;
+  font-weight: bold;
+  z-index: 4;
+}
+
+#message {
+  position: absolute;
+  top: 68px;
+  left: 15px;
+  right: 15px;
+  background: rgba(255,255,255,.95);
+  padding: 10px;
+  border-radius: 12px;
+  font-size: 16px;
+  z-index: 4;
+}
+
+#startScreen,
+#gameover {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.78);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  z-index: 10;
+  padding: 25px;
+}
+
+#gameover { display: none; }
+
+button {
+  margin-top: 18px;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 14px;
+  font-size: 18px;
+  font-weight: bold;
+  background: #ff9800;
+  color: white;
+}
+
+.small { font-size: 15px; opacity: .9; }
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+  <div id="score">⭐ Score: 0 / 20</div>
+  <div id="message">🏺 Tap screen para tumalon. Kolektahin ang AP8 terms!</div>
+
+  <div id="player">🧑‍🎓</div>
+  <div id="ground"></div>
+
+  <div id="startScreen">
+    <h1>🏺 AP8 Runner Game</h1>
+    <p>Kolektahin ang 20 AP8 terms at iwasan ang bato.</p>
+    <p class="small">Tap screen / Spacebar = Jump</p>
+    <button id="startBtn">🎮 Start Game</button>
+  </div>
+
+  <div id="gameover">
+    <h1 id="endTitle">Game Over</h1>
+    <p id="finalText"></p>
+    <button id="restartBtn">🔁 Play Again</button>
+  </div>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+const player = document.getElementById("player");
+const scoreText = document.getElementById("score");
+const message = document.getElementById("message");
+const game = document.getElementById("game");
+const gameover = document.getElementById("gameover");
+const finalText = document.getElementById("finalText");
+const endTitle = document.getElementById("endTitle");
+const startScreen = document.getElementById("startScreen");
+const startBtn = document.getElementById("startBtn");
+const restartBtn = document.getElementById("restartBtn");
+
+let jumping = false;
+let score = 0;
+let gameEnded = false;
+let gameStarted = false;
+let obstacleTimer = null;
+let termTimer = null;
+
+const terms = [
+  ["Nile","Ilog ng Egypt"],
+  ["Indus","Kabihasnan sa Timog Asya"],
+  ["Huang He","Sorrow of China"],
+  ["Cuneiform","Sistema ng pagsulat ng Sumer"],
+  ["Hieroglyphics","Pagsulat ng Egypt"],
+  ["Pangaea","Superkontinente"],
+  ["Tigris","Ilog sa Mesopotamia"],
+  ["Euphrates","Katuwang ng Tigris"],
+  ["Ziggurat","Templo ng Mesopotamia"],
+  ["Harappa","Lungsod ng Indus"],
+  ["Mohenjo-Daro","Sinaunang lungsod"],
+  ["Pharaoh","Pinuno ng Egypt"],
+  ["Irigasyon","Sistema ng patubig"],
+  ["Kabihasnan","Maunlad na pamayanan"],
+  ["Dynasty","Sunod-sunod na pamumuno"],
+  ["Oracle Bone","Sinaunang buto ng China"],
+  ["Mesopotamia","Lupain sa pagitan ng ilog"],
+  ["Sumer","Unang kabihasnan"],
+  ["Continental Drift","Teorya ni Wegener"],
+  ["Plate Tectonics","Paggalaw ng plates"]
+];
+
+function startGame() {
+  score = 0;
+  gameEnded = false;
+  gameStarted = true;
+  jumping = false;
+
+  scoreText.innerHTML = "⭐ Score: 0 / 20";
+  message.innerHTML = "🏺 Tap screen para tumalon. Kolektahin ang AP8 terms!";
+  player.style.bottom = "110px";
+
+  document.querySelectorAll(".obstacle, .term").forEach(el => el.remove());
+
+  startScreen.style.display = "none";
+  gameover.style.display = "none";
+
+  clearInterval(obstacleTimer);
+  clearInterval(termTimer);
+
+  obstacleTimer = setInterval(createObstacle, 2300);
+  termTimer = setInterval(createTerm, 1600);
+}
+
+function jump() {
+  if (jumping || gameEnded || !gameStarted) return;
+
+  jumping = true;
+  let height = 0;
+
+  const up = setInterval(function () {
+    if (height >= 175) {
+      clearInterval(up);
+
+      const down = setInterval(function () {
+        if (height <= 0) {
+          clearInterval(down);
+          jumping = false;
+          player.style.bottom = "110px";
+          return;
+        }
+
+        height -= 10;
+        player.style.bottom = (110 + height) + "px";
+      }, 20);
+
+      return;
+    }
+
+    height += 10;
+    player.style.bottom = (110 + height) + "px";
+  }, 20);
+}
+
+document.addEventListener("keydown", function(e) {
+  if (e.code === "Space") jump();
+});
+
+game.addEventListener("pointerdown", function(e) {
+  if (e.target.tagName.toLowerCase() === "button") return;
+  jump();
+});
+
+function createObstacle() {
+  if (gameEnded || !gameStarted) return;
+
+  const obstacle = document.createElement("div");
+  obstacle.className = "obstacle";
+  obstacle.innerHTML = "🪨";
+  obstacle.style.left = window.innerWidth + "px";
+  game.appendChild(obstacle);
+
+  let pos = window.innerWidth;
+
+  const move = setInterval(function () {
+    if (gameEnded) {
+      clearInterval(move);
+      obstacle.remove();
+      return;
+    }
+
+    pos -= 7;
+    obstacle.style.left = pos + "px";
+
+    const playerRect = player.getBoundingClientRect();
+    const obstacleRect = obstacle.getBoundingClientRect();
+
+    if (isColliding(playerRect, obstacleRect)) {
+      clearInterval(move);
+      endGame();
+      return;
+    }
+
+    if (pos < -90) {
+      clearInterval(move);
+      obstacle.remove();
+    }
+  }, 20);
+}
+
+function createTerm() {
+  if (gameEnded || !gameStarted) return;
+
+  const data = terms[Math.floor(Math.random() * terms.length)];
+
+  const term = document.createElement("div");
+  term.className = "term";
+  term.innerHTML = "📜 " + data[0];
+  term.style.left = window.innerWidth + "px";
+
+  game.appendChild(term);
+
+  let pos = window.innerWidth;
+
+  const move = setInterval(function () {
+    if (gameEnded) {
+      clearInterval(move);
+      term.remove();
+      return;
+    }
+
+    pos -= 6;
+    term.style.left = pos + "px";
+
+    const playerRect = player.getBoundingClientRect();
+    const termRect = term.getBoundingClientRect();
+
+    if (isColliding(playerRect, termRect)) {
+      score++;
+      scoreText.innerHTML = "⭐ Score: " + score + " / 20";
+      message.innerHTML = "✅ <b>" + data[0] + "</b>: " + data[1];
+
+      clearInterval(move);
+      term.remove();
+
+      if (score >= 20) {
+        winGame();
+      }
+      return;
+    }
+
+    if (pos < -220) {
+      clearInterval(move);
+      term.remove();
+    }
+  }, 20);
+}
+
+function isColliding(a, b) {
+  return (
+    a.left < b.right &&
+    a.right > b.left &&
+    a.top < b.bottom &&
+    a.bottom > b.top
+  );
+}
+
+function endGame() {
+  gameEnded = true;
+  gameStarted = false;
+
+  clearInterval(obstacleTimer);
+  clearInterval(termTimer);
+
+  endTitle.innerHTML = "💥 Game Over!";
+  finalText.innerHTML = "Nabangga ka sa bato.<br>Final Score: " + score + " / 20";
+  gameover.style.display = "flex";
+}
+
+function winGame() {
+  gameEnded = true;
+  gameStarted = false;
+
+  clearInterval(obstacleTimer);
+  clearInterval(termTimer);
+
+  endTitle.innerHTML = "🏆 Quest Complete!";
+  finalText.innerHTML = "Nakumpleto mo ang 20 AP8 terms!";
+  gameover.style.display = "flex";
+}
+
+startBtn.addEventListener("click", startGame);
+restartBtn.addEventListener("click", startGame);
+
+});
+</script>
+
+</body>
+</html>

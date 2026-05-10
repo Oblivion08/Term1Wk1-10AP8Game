@@ -1,0 +1,170 @@
+
+<!DOCTYPE html>
+<html lang="fil">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week 5 Symbol Match</title>
+<style>
+body{
+font-family:Arial;
+background:linear-gradient(#fff3e0,#e1f5fe);
+margin:0;
+padding:20px;
+}
+.container{
+max-width:430px;
+margin:auto;
+background:white;
+padding:20px;
+border-radius:20px;
+box-shadow:0 4px 15px rgba(0,0,0,.15);
+}
+h1{
+text-align:center;
+color:#ef6c00;
+}
+.item,.choice{
+padding:14px;
+margin:10px 0;
+border-radius:15px;
+cursor:pointer;
+font-weight:bold;
+}
+.item{
+background:#fff8e1;
+border:2px solid #ffb300;
+}
+.choice{
+background:#e3f2fd;
+border:2px solid #1e88e5;
+}
+.selected{
+background:#ffd54f!important;
+}
+.correct{
+background:#81c784!important;
+color:white;
+}
+.wrong{
+background:#ef5350!important;
+color:white;
+}
+#feedback{
+margin-top:15px;
+padding:12px;
+border-radius:12px;
+background:#f5f5f5;
+min-height:50px;
+}
+button{
+width:100%;
+padding:14px;
+margin-top:15px;
+border:none;
+border-radius:14px;
+background:#1e88e5;
+color:white;
+font-size:18px;
+font-weight:bold;
+}
+.score{
+text-align:center;
+font-size:20px;
+font-weight:bold;
+margin-bottom:15px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>🏛️ Week 5 Symbol Match</h1>
+<div class="score" id="score">Score: 0</div>
+
+<div id="items"></div>
+
+<h3>Relihiyon / Paniniwala</h3>
+<div id="choices"></div>
+
+<div id="feedback">Piliin ang symbol o term.</div>
+
+<button onclick="location.reload()">🔁 Restart</button>
+</div>
+
+<script>
+const data = [
+["🕉️ Om","Hinduismo"],
+["✡️ Star of David","Judaismo"],
+["✝️ Krus","Kristiyanismo"],
+["☪️ Crescent and Star","Islam"],
+["☸️ Dharma Wheel","Buddhismo"],
+["🔥 Apoy","Zoroastrianismo"],
+["📖 Bibliya","Kristiyanismo"],
+["📗 Qur'an","Islam"],
+["📜 Torah","Judaismo"],
+["📜 Vedas","Hinduismo"]
+];
+
+let score = 0;
+let selected = null;
+
+const itemsDiv = document.getElementById("items");
+const choicesDiv = document.getElementById("choices");
+
+function shuffle(arr){
+return arr.sort(()=>Math.random()-0.5);
+}
+
+function render(){
+
+itemsDiv.innerHTML = "";
+choicesDiv.innerHTML = "";
+
+shuffle([...data]).forEach((d,index)=>{
+const div = document.createElement("div");
+div.className="item";
+div.textContent=d[0];
+
+div.onclick=()=>{
+document.querySelectorAll(".item").forEach(x=>x.classList.remove("selected"));
+div.classList.add("selected");
+selected=d;
+};
+
+itemsDiv.appendChild(div);
+});
+
+let allChoices = shuffle([...new Set(data.map(x=>x[1]))]);
+
+allChoices.forEach(choice=>{
+const div=document.createElement("div");
+div.className="choice";
+div.textContent=choice;
+
+div.onclick=()=>{
+if(!selected){
+document.getElementById("feedback").textContent="Pumili muna ng symbol.";
+return;
+}
+
+if(selected[1]===choice){
+div.classList.add("correct");
+score++;
+document.getElementById("score").textContent="Score: "+score;
+document.getElementById("feedback").textContent="✅ Tama!";
+}else{
+div.classList.add("wrong");
+document.getElementById("feedback").textContent="❌ Mali!";
+setTimeout(()=>div.classList.remove("wrong"),500);
+}
+};
+choicesDiv.appendChild(div);
+});
+}
+
+render();
+</script>
+
+</body>
+</html>

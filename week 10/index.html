@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week 10 Historical Legends RPG</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:linear-gradient(#0b132b,#1c2541,#3a506b);
+  color:white;
+}
+.screen{
+  display:none;
+  min-height:100vh;
+  padding:18px;
+  text-align:center;
+}
+.active{display:block}
+h1{font-size:34px;margin:10px 0}
+h2{margin:8px 0}
+.card{
+  background:rgba(255,255,255,.14);
+  border:2px solid rgba(255,255,255,.22);
+  border-radius:22px;
+  padding:18px;
+  margin:14px auto;
+  max-width:920px;
+  box-shadow:0 8px 20px rgba(0,0,0,.25);
+}
+.hero{
+  font-size:86px;
+  animation:float 2s infinite ease-in-out;
+}
+@keyframes float{
+  0%{transform:translateY(0)}
+  50%{transform:translateY(-10px)}
+  100%{transform:translateY(0)}
+}
+.stats{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin:12px 0;
+}
+.stat{
+  background:rgba(0,0,0,.32);
+  border-radius:14px;
+  padding:10px 14px;
+  font-weight:bold;
+}
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  max-width:900px;
+  margin:16px auto;
+}
+.legend{
+  background:#fff8e1;
+  color:#111;
+  border:3px solid #ffca28;
+  border-radius:20px;
+  padding:14px;
+  cursor:pointer;
+  transition:.2s;
+  text-align:left;
+}
+.legend:hover{transform:scale(1.02);background:#ffecb3}
+.legend.done{background:#81c784;color:white;border-color:#43a047}
+.legend .portrait{text-align:center;font-size:62px}
+.legend .name{font-size:22px;font-weight:900;text-align:center;color:#5d4037}
+.done .name{color:white}
+.badge{
+  display:inline-block;
+  background:#ffca28;
+  color:#111;
+  border-radius:999px;
+  padding:8px 12px;
+  margin:4px;
+  font-weight:bold;
+}
+.dialogue{
+  background:#fff3cd;
+  color:#111;
+  border-radius:18px;
+  padding:14px;
+  font-size:18px;
+  max-width:860px;
+  margin:12px auto;
+  text-align:left;
+}
+.choices{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  max-width:860px;
+  margin:12px auto;
+}
+.choice{
+  background:white;
+  color:#111;
+  border-radius:15px;
+  padding:15px;
+  font-weight:bold;
+  cursor:pointer;
+}
+.choice:hover{background:#ffe082;transform:scale(1.02)}
+button{
+  border:none;
+  border-radius:14px;
+  background:#ffd166;
+  color:#111;
+  padding:14px 22px;
+  font-size:18px;
+  font-weight:bold;
+  margin-top:12px;
+  cursor:pointer;
+}
+.inventory{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  max-width:760px;
+  margin:12px auto;
+}
+.item{
+  background:#ede7f6;
+  color:#111;
+  border-radius:16px;
+  padding:12px;
+  font-weight:bold;
+}
+.locked{filter:grayscale(1);opacity:.45}
+.bossHp{
+  width:90%;
+  max-width:700px;
+  height:28px;
+  background:#333;
+  border-radius:999px;
+  overflow:hidden;
+  margin:12px auto;
+}
+.bossFill{
+  height:100%;
+  width:100%;
+  background:#ef5350;
+  transition:.35s;
+}
+@media(max-width:650px){
+  .grid,.choices,.inventory{grid-template-columns:1fr}
+  h1{font-size:28px}
+  .hero{font-size:72px}
+}
+</style>
+</head>
+<body>
+
+<section id="start" class="screen active">
+  <h1>🌏 WEEK 10 HISTORICAL LEGENDS RPG</h1>
+  <h2>Ang mga Asyano sa Panahon ng Paggalugad at Kolonyalismo</h2>
+  <div class="hero">🧭</div>
+  <div class="card">
+    <p style="font-size:20px">Kausapin ang mga historical legends, alamin ang kanilang ambag, kolektahin ang relics, at talunin ang final boss ng kamangmangan.</p>
+    <button onclick="startGame()">🎮 Simulan ang Legendary Quest</button>
+  </div>
+</section>
+
+<section id="map" class="screen">
+  <h1>🗺️ Legends Map</h1>
+  <div class="stats">
+    <div class="stat">❤️ HP: <span id="hp">100</span></div>
+    <div class="stat">⭐ XP: <span id="xp">0</span></div>
+    <div class="stat">🪙 Coins: <span id="coins">0</span></div>
+    <div class="stat">🏺 Relics: <span id="relics">0</span>/4</div>
+  </div>
+
+  <div class="card">
+    <h2>🎒 Relic Collection</h2>
+    <div class="inventory" id="inventory"></div>
+  </div>
+
+  <div class="grid" id="legendGrid"></div>
+</section>
+
+<section id="legendScreen" class="screen">
+  <h1 id="legendTitle"></h1>
+  <div class="hero" id="legendPortrait">🧕</div>
+
+  <div class="card">
+    <div class="dialogue" id="legendDialogue"></div>
+
+    <h2>📜 Ambag / Contribution</h2>
+    <div class="dialogue" id="legendContribution"></div>
+
+    <h2>⭐ Special Skill</h2>
+    <div class="dialogue" id="legendSkill"></div>
+
+    <button onclick="startQuestion()">⚔️ Simulan ang Mission</button>
+  </div>
+</section>
+
+<section id="mission" class="screen">
+  <h1 id="missionTitle"></h1>
+  <div class="hero" id="missionPortrait"></div>
+  <div class="card">
+    <h2 id="question"></h2>
+    <div class="choices" id="choices"></div>
+    <div class="dialogue" id="feedback">Piliin ang tamang sagot.</div>
+  </div>
+</section>
+
+<section id="boss" class="screen">
+  <h1>👹 FINAL BOSS: KOLONYAL NA KALITUHAN</h1>
+  <div class="hero">👹</div>
+  <div class="bossHp"><div class="bossFill" id="bossFill"></div></div>
+  <div class="card">
+    <h2 id="bossQuestion"></h2>
+    <div class="choices" id="bossChoices"></div>
+    <div class="dialogue" id="bossFeedback">Gamitin ang kaalamang nakalap mula sa historical legends.</div>
+  </div>
+</section>
+
+<section id="win" class="screen">
+  <h1>🏆 AP8 HISTORY LEGEND!</h1>
+  <div class="hero">👑</div>
+  <div class="card">
+    <h2>Natapos mo ang Week 10 Legendary Quest!</h2>
+    <p>Final Stats: ❤️ <span id="finalHp"></span> | ⭐ <span id="finalXp"></span> | 🪙 <span id="finalCoins"></span></p>
+    <h3>Unlocked Relics:</h3>
+    <div class="inventory" id="finalInventory"></div>
+    <div>
+      <span class="badge">🧭 Master Explorer</span>
+      <span class="badge">📚 Knowledge Guardian</span>
+      <span class="badge">🌏 Asian History Hero</span>
+    </div>
+    <button onclick="location.reload()">🔁 Play Again</button>
+  </div>
+</section>
+
+<script>
+let hp=100, xp=0, coins=0, relics=0, current=0, bossHp=100, bossIndex=0;
+let earned=[];
+
+const legends=[
+{
+ name:"Ibn Battuta",
+ portrait:"👳‍♂️",
+ place:"Morocco → Africa → Asia",
+ relic:"📜 Traveler Scroll",
+ skill:"World Traveler",
+ dialogue:"Ako si Ibn Battuta. Nilakbay ko ang maraming lupain upang maitala ang kultura, pamumuhay, at ugnayan ng mga tao.",
+ contribution:"Nagbigay ng mahahalagang impormasyon tungkol sa mga lugar at kultura. Ipinakita niya ang malawak na ugnayan ng Africa, Asya, at Gitnang Silangan.",
+ question:"Ano ang pangunahing ambag ni Ibn Battuta?",
+ choices:["Paglalakbay at pagtatala ng kultura","Pagtatayo ng Taj Mahal","Pagsasara ng Japan","Pagsakop sa Constantinople"],
+ answer:"Paglalakbay at pagtatala ng kultura"
+},
+{
+ name:"Zheng He",
+ portrait:"🚢",
+ place:"Ming China",
+ relic:"🧭 Dragon Compass",
+ skill:"Master Navigator",
+ dialogue:"Ako si Zheng He, pinuno ng malalaking paglalayag ng Ming China. Dinala namin ang kalakalan at diplomasya sa malalayong lupain.",
+ contribution:"Pinalawak ang ugnayan ng China sa ibang bansa, nagdala ng kalakalan, palitan ng kultura, at nagpakita ng husay sa paggawa ng barko at nabigasyon.",
+ question:"Ano ang ipinakita ng paglalayag ni Zheng He?",
+ choices:["Husay sa paglalayag at ugnayang pangkalakalan","Pagbagsak ng Constantinople","Pagpapatupad ng Sakoku","Pagbuo ng caste system"],
+ answer:"Husay sa paglalayag at ugnayang pangkalakalan"
+},
+{
+ name:"Akbar / Mughal Empire",
+ portrait:"👑",
+ place:"India",
+ relic:"👑 Imperial Crown",
+ skill:"Wise Ruler",
+ dialogue:"Ako si Akbar ng Mughal Empire. Pinatatag namin ang pamahalaan, kultura, sining, at arkitektura sa India.",
+ contribution:"Nagkaroon ng kapayapaan at kaayusan sa malawak na teritoryo. Umunlad ang sining, panitikan, arkitektura tulad ng Taj Mahal, at mahusay na pamamahala.",
+ question:"Saan umusbong ang Mughal Empire?",
+ choices:["India","Japan","China","Morocco"],
+ answer:"India"
+},
+{
+ name:"Tokugawa Ieyasu",
+ portrait:"⚔️",
+ place:"Japan",
+ relic:"🗾 Sakoku Seal",
+ skill:"Guardian of Japan",
+ dialogue:"Ako si Tokugawa Ieyasu. Sa Japan, pinanatili namin ang kapayapaan at katatagan sa pamamagitan ng mahigpit na patakaran.",
+ contribution:"Ang Edict of Sakoku ay naglimita sa pagpasok ng dayuhan sa Japan. Napanatili ang kaayusan ngunit nahuli sa ilang teknolohiyang kanluranin.",
+ question:"Ano ang layunin ng Edict of Sakoku?",
+ choices:["Isara o limitahan ang Japan sa dayuhan","Palawakin ang Europe","Sakupin ang India","Maglakbay sa Africa"],
+ answer:"Isara o limitahan ang Japan sa dayuhan"
+}
+];
+
+const bossQuestions=[
+{
+ q:"Ano ang ipinapakita ng mga paglalakbay nina Ibn Battuta at Zheng He?",
+ choices:["May kakayahan ang mga Asyano sa paglalakbay at ugnayan","Europe lang ang marunong maglayag","Walang ambag ang Asya","Lahat ng paglalayag ay masama"],
+ a:"May kakayahan ang mga Asyano sa paglalakbay at ugnayan"
+},
+{
+ q:"Ano ang mahalagang ambag ng Mughal Empire?",
+ choices:["Sining, arkitektura, at pamamahala","Pagwasak sa lahat ng kultura","Pagsasara ng China","Pag-imbento ng internet"],
+ a:"Sining, arkitektura, at pamamahala"
+},
+{
+ q:"Ano ang aral mula sa Tokugawa Japan?",
+ choices:["Maaaring protektahan ang sariling kultura ngunit may epekto rin ang pagsasara","Dapat laging makipagdigma","Walang halaga ang kultura","Laging tama ang kolonyalismo"],
+ a:"Maaaring protektahan ang sariling kultura ngunit may epekto rin ang pagsasara"
+}
+];
+
+function show(id){
+ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+ window.scrollTo(0,0);
+}
+function startGame(){show("map");renderMap();renderInventory();updateStats();}
+function updateStats(){
+ document.getElementById("hp").innerText=hp;
+ document.getElementById("xp").innerText=xp;
+ document.getElementById("coins").innerText=coins;
+ document.getElementById("relics").innerText=relics;
+}
+function renderInventory(){
+ const box=document.getElementById("inventory");
+ box.innerHTML="";
+ legends.forEach(l=>{
+  const div=document.createElement("div");
+  div.className="item "+(earned.includes(l.relic)?"":"locked");
+  div.innerHTML="<b>"+l.relic+"</b><br>"+l.name;
+  box.appendChild(div);
+ });
+}
+function renderMap(){
+ const grid=document.getElementById("legendGrid");
+ grid.innerHTML="";
+ legends.forEach((l,i)=>{
+  const div=document.createElement("div");
+  div.className="legend "+(l.done?"done":"");
+  div.innerHTML="<div class='portrait'>"+l.portrait+"</div><div class='name'>"+l.name+"</div><p><b>Lokasyon:</b> "+l.place+"</p><p><b>Relic:</b> "+l.relic+"</p>"+(l.done?"<b>✅ Complete</b>":"");
+  div.onclick=()=>openLegend(i);
+  grid.appendChild(div);
+ });
+}
+function openLegend(i){
+ const l=legends[i];
+ if(l.done){alert("Legend completed na!");return;}
+ current=i;
+ document.getElementById("legendTitle").innerText=l.name;
+ document.getElementById("legendPortrait").innerText=l.portrait;
+ document.getElementById("legendDialogue").innerText="💬 “"+l.dialogue+"”";
+ document.getElementById("legendContribution").innerText=l.contribution;
+ document.getElementById("legendSkill").innerText="⭐ "+l.skill;
+ show("legendScreen");
+}
+function startQuestion(){
+ const l=legends[current];
+ document.getElementById("missionTitle").innerText="Mission: "+l.name;
+ document.getElementById("missionPortrait").innerText=l.portrait;
+ document.getElementById("question").innerText=l.question;
+ document.getElementById("feedback").innerText="Piliin ang tamang sagot.";
+ const choices=document.getElementById("choices");
+ choices.innerHTML="";
+ [...l.choices].sort(()=>Math.random()-.5).forEach(c=>{
+  const btn=document.createElement("div");
+  btn.className="choice";
+  btn.innerText=c;
+  btn.onclick=()=>checkAnswer(c);
+  choices.appendChild(btn);
+ });
+ show("mission");
+}
+function checkAnswer(choice){
+ const l=legends[current];
+ if(choice===l.answer){
+  xp+=25; coins+=20; relics++; l.done=true; earned.push(l.relic);
+  document.getElementById("feedback").innerHTML="✅ Tama! Nakuha mo ang <b>"+l.relic+"</b>!";
+ }else{
+  hp-=20;
+  document.getElementById("feedback").innerHTML="❌ Mali. Nabawasan ang HP mo, pero natutunan mo: "+l.contribution;
+ }
+ setTimeout(()=>{
+  if(hp<=0){alert("Game Over!");location.reload();return;}
+  if(relics===4){startBoss();}
+  else{show("map");renderMap();renderInventory();updateStats();}
+ },1800);
+}
+function startBoss(){
+ bossHp=100; bossIndex=0;
+ document.getElementById("bossFill").style.width="100%";
+ show("boss");loadBossQuestion();
+}
+function loadBossQuestion(){
+ const b=bossQuestions[bossIndex];
+ document.getElementById("bossQuestion").innerText=b.q;
+ document.getElementById("bossFeedback").innerText="Sagutin para bawasan ang HP ng final boss.";
+ const div=document.getElementById("bossChoices");
+ div.innerHTML="";
+ [...b.choices].sort(()=>Math.random()-.5).forEach(c=>{
+  const btn=document.createElement("div");
+  btn.className="choice";
+  btn.innerText=c;
+  btn.onclick=()=>bossAnswer(c);
+  div.appendChild(btn);
+ });
+}
+function bossAnswer(choice){
+ const b=bossQuestions[bossIndex];
+ if(choice===b.a){
+  bossHp-=34; xp+=30; coins+=25;
+  if(bossHp<0)bossHp=0;
+  document.getElementById("bossFill").style.width=bossHp+"%";
+  document.getElementById("bossFeedback").innerText="✅ Critical Hit!";
+ }else{
+  hp-=20;
+  document.getElementById("bossFeedback").innerText="❌ Mali! Bumawas ang HP mo.";
+ }
+ updateStats();
+ setTimeout(()=>{
+  if(hp<=0){alert("Game Over!");location.reload();return;}
+  bossIndex++;
+  if(bossIndex>=bossQuestions.length||bossHp<=0){win();}
+  else{loadBossQuestion();}
+ },1200);
+}
+function win(){
+ document.getElementById("finalHp").innerText=hp;
+ document.getElementById("finalXp").innerText=xp;
+ document.getElementById("finalCoins").innerText=coins;
+ const f=document.getElementById("finalInventory");
+ f.innerHTML="";
+ earned.forEach(e=>{
+  const div=document.createElement("div");
+  div.className="item";
+  div.innerHTML="<b>"+e+"</b><br>Unlocked";
+  f.appendChild(div);
+ });
+ show("win");
+}
+</script>
+</body>
+</html>

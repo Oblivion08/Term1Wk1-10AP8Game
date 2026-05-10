@@ -1,0 +1,392 @@
+
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week 7 Character Boss Battle</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:linear-gradient(to bottom,#14213d,#1d3557);
+color:white;
+overflow:hidden;
+}
+
+.screen{
+display:none;
+width:100vw;
+height:100vh;
+padding:20px;
+box-sizing:border-box;
+text-align:center;
+}
+
+.active{display:block;}
+
+h1{
+font-size:42px;
+}
+
+.hero{
+font-size:90px;
+animation:bounce 2s infinite;
+}
+
+.boss{
+font-size:110px;
+animation:float 2s infinite;
+}
+
+@keyframes bounce{
+0%{transform:translateY(0);}
+50%{transform:translateY(-10px);}
+100%{transform:translateY(0);}
+}
+
+@keyframes float{
+0%{transform:translateY(0);}
+50%{transform:translateY(-12px);}
+100%{transform:translateY(0);}
+}
+
+.hpbar{
+width:80%;
+height:28px;
+background:#444;
+border-radius:20px;
+overflow:hidden;
+margin:auto;
+}
+
+.hp{
+height:100%;
+background:lime;
+width:100%;
+transition:.3s;
+}
+
+.question{
+font-size:28px;
+margin:20px;
+}
+
+.choices{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:15px;
+max-width:800px;
+margin:auto;
+}
+
+.choice{
+background:white;
+color:black;
+padding:18px;
+border-radius:14px;
+font-size:20px;
+cursor:pointer;
+}
+
+.choice:hover{
+background:#ffe082;
+transform:scale(1.03);
+}
+
+button{
+padding:15px 25px;
+font-size:20px;
+border:none;
+border-radius:12px;
+background:#ffd166;
+font-weight:bold;
+cursor:pointer;
+}
+
+.fact{
+margin-top:20px;
+font-size:20px;
+background:rgba(255,255,255,.15);
+padding:12px;
+border-radius:12px;
+}
+
+.flex{
+display:flex;
+justify-content:space-around;
+align-items:center;
+margin-top:10px;
+}
+
+.score{
+font-size:24px;
+margin-top:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="screen active" id="start">
+<h1>⚔️ WEEK 7 CHARACTER BATTLE ⚔️</h1>
+
+<div class="flex">
+<div>
+<div class="hero">🧑‍🎓</div>
+<p>AP8 Hero</p>
+</div>
+
+<div>
+<div class="boss">🏰</div>
+<p>History Boss</p>
+</div>
+</div>
+
+<p style="font-size:24px;">Tulungan ang AP8 Hero na talunin ang mga boss ng kasaysayan!</p>
+
+<button onclick="startGame()">🎮 Start Adventure</button>
+</div>
+
+<div class="screen" id="battle">
+
+<h1 id="bossTitle"></h1>
+
+<div class="flex">
+<div>
+<div class="hero" id="heroFace">🧑‍🎓</div>
+<p id="heroMood">Handa sa laban!</p>
+</div>
+
+<div>
+<div class="boss" id="bossEmoji">🏰</div>
+<p>History Boss</p>
+</div>
+</div>
+
+<div class="hpbar">
+<div class="hp" id="bossHP"></div>
+</div>
+
+<div class="score">⭐ Score: <span id="score">0</span></div>
+
+<div class="question" id="question"></div>
+
+<div class="choices" id="choices"></div>
+
+<div class="fact" id="factBox"></div>
+
+</div>
+
+<div class="screen" id="win">
+
+<h1>🏆 PANALO! 🏆</h1>
+
+<div class="hero">👑</div>
+
+<p style="font-size:28px;">Nailigtas mo ang Kasaysayan!</p>
+
+<p style="font-size:22px;">Ikaw ang tunay na AP8 Champion!</p>
+
+<button onclick="location.reload()">🔁 Play Again</button>
+
+</div>
+
+<script>
+
+const bosses = [
+
+{
+title:"🏰 Pagbagsak ng Constantinople",
+emoji:"🛡️",
+hp:3,
+questions:[
+{
+q:"Anong taon bumagsak ang Constantinople?",
+choices:["1453","1492","1517","1600"],
+answer:"1453",
+fact:"🏰 Naging daan ito sa Age of Exploration."
+},
+{
+q:"Sino ang sumakop sa Constantinople?",
+choices:["Ottoman Turks","Romans","French","Spaniards"],
+answer:"Ottoman Turks",
+fact:"⚔️ Pinamunuan ito ni Mehmed II."
+},
+{
+q:"Ano ang naging epekto nito?",
+choices:["Bagong rutang pangkalakalan","Tahimik ang Europe","Natigil ang sining","Walang epekto"],
+answer:"Bagong rutang pangkalakalan",
+fact:"🌍 Naghanap ang Europe ng bagong ruta papuntang Asya."
+}
+]
+},
+
+{
+title:"🎨 Renaissance",
+emoji:"🎨",
+hp:3,
+questions:[
+{
+q:"Ano ang ibig sabihin ng Renaissance?",
+choices:["Muling pagsilang","Digmaan","Pagbagsak","Pananakop"],
+answer:"Muling pagsilang",
+fact:"🎭 Panahon ito ng pag-unlad sa sining at agham."
+},
+{
+q:"Ano ang umunlad sa Renaissance?",
+choices:["Sining at agham","Digmaan","Kolonisasyon","Piracy"],
+answer:"Sining at agham",
+fact:"🧠 Maraming artist at scientist ang sumikat."
+},
+{
+q:"Sino ang sikat na artist?",
+choices:["Leonardo da Vinci","Martin Luther","Magellan","Galileo"],
+answer:"Leonardo da Vinci",
+fact:"🖼️ Siya ang gumawa ng Mona Lisa."
+}
+]
+},
+
+{
+title:"⛪ Repormasyon vs Kontra-Repormasyon",
+emoji:"⚔️",
+hp:4,
+questions:[
+{
+q:"Sino ang nagsimula ng Repormasyon?",
+choices:["Martin Luther","Leonardo","Galileo","Magellan"],
+answer:"Martin Luther",
+fact:"📜 Ipinaskil niya ang 95 Theses."
+},
+{
+q:"Layunin ng Repormasyon?",
+choices:["Baguhin ang Simbahan","Magtayo ng imperyo","Magpinta","Mangkalakal"],
+answer:"Baguhin ang Simbahan",
+fact:"⛪ Tinuligsa ang maling gawain sa Simbahan."
+},
+{
+q:"Ano ang tugon ng Simbahang Katolika?",
+choices:["Kontra-Repormasyon","Crusades","Renaissance","Paglusob"],
+answer:"Kontra-Repormasyon",
+fact:"✝️ Inayos ng Simbahang Katolika ang sarili nito."
+},
+{
+q:"Anong mahalagang pangyayari dito?",
+choices:["Council of Trent","World War","French Revolution","Age of Discovery"],
+answer:"Council of Trent",
+fact:"📖 Dito isinagawa ang reporma sa Simbahan."
+}
+]
+}
+
+];
+
+let currentBoss=0;
+let currentQuestion=0;
+let score=0;
+let hp=100;
+
+function startGame(){
+document.getElementById("start").classList.remove("active");
+document.getElementById("battle").classList.add("active");
+loadQuestion();
+}
+
+function loadQuestion(){
+
+const boss = bosses[currentBoss];
+const q = boss.questions[currentQuestion];
+
+document.getElementById("bossTitle").innerText=boss.title;
+document.getElementById("bossEmoji").innerText=boss.emoji;
+document.getElementById("question").innerText=q.q;
+
+const choicesDiv=document.getElementById("choices");
+choicesDiv.innerHTML="";
+
+q.choices.sort(()=>Math.random()-0.5);
+
+q.choices.forEach(choice=>{
+
+const div=document.createElement("div");
+div.className="choice";
+div.innerText=choice;
+
+div.onclick=()=>checkAnswer(choice);
+
+choicesDiv.appendChild(div);
+
+});
+
+document.getElementById("factBox").innerText="";
+
+}
+
+function checkAnswer(choice){
+
+const boss=bosses[currentBoss];
+const q=boss.questions[currentQuestion];
+
+if(choice===q.answer){
+
+score+=10;
+document.getElementById("score").innerText=score;
+
+hp -= (100/boss.hp);
+
+if(hp<0) hp=0;
+
+document.getElementById("bossHP").style.width=hp+"%";
+
+document.getElementById("heroFace").innerText="😎";
+document.getElementById("heroMood").innerText="Critical Hit!";
+
+document.getElementById("factBox").innerText="✅ Tama! "+q.fact;
+
+}else{
+
+document.getElementById("heroFace").innerText="😵";
+document.getElementById("heroMood").innerText="Aray!";
+
+document.getElementById("factBox").innerText="❌ Mali! "+q.fact;
+
+}
+
+setTimeout(()=>{
+
+document.getElementById("heroFace").innerText="🧑‍🎓";
+document.getElementById("heroMood").innerText="Handa sa laban!";
+
+currentQuestion++;
+
+if(currentQuestion>=boss.questions.length){
+
+currentBoss++;
+currentQuestion=0;
+hp=100;
+
+document.getElementById("bossHP").style.width="100%";
+
+if(currentBoss>=bosses.length){
+
+document.getElementById("battle").classList.remove("active");
+document.getElementById("win").classList.add("active");
+return;
+
+}
+
+}
+
+loadQuestion();
+
+},1800);
+
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="fil">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week 6 Interactive Temple Quest</title>
+<style>
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:linear-gradient(#ffe0b2,#e1f5fe);
+padding:15px;
+}
+.container{
+max-width:480px;
+margin:auto;
+background:white;
+padding:20px;
+border-radius:22px;
+box-shadow:0 6px 18px rgba(0,0,0,.2);
+}
+h1{
+text-align:center;
+color:#ef6c00;
+margin-bottom:5px;
+}
+.subtitle{
+text-align:center;
+margin-bottom:15px;
+}
+.character{
+font-size:90px;
+text-align:center;
+transition:.3s;
+}
+.score{
+text-align:center;
+font-size:22px;
+font-weight:bold;
+background:#fff3cd;
+padding:10px;
+border-radius:15px;
+margin:10px 0;
+}
+.progress{
+height:18px;
+background:#ddd;
+border-radius:20px;
+overflow:hidden;
+margin-bottom:15px;
+}
+.bar{
+height:100%;
+width:0%;
+background:#66bb6a;
+transition:.3s;
+}
+.question{
+background:#e3f2fd;
+padding:18px;
+border-radius:18px;
+font-size:20px;
+font-weight:bold;
+text-align:center;
+min-height:70px;
+}
+.choice{
+background:#f5f5f5;
+padding:16px;
+margin:12px 0;
+border-radius:16px;
+font-size:18px;
+cursor:pointer;
+border:3px solid transparent;
+transition:.2s;
+}
+.choice:hover{
+transform:scale(1.02);
+background:#fff8e1;
+}
+.correct{
+background:#81c784!important;
+color:white;
+border-color:#388e3c!important;
+}
+.wrong{
+background:#ef5350!important;
+color:white;
+border-color:#c62828!important;
+}
+#feedback{
+margin-top:15px;
+padding:15px;
+border-radius:15px;
+background:#f1f1f1;
+text-align:center;
+min-height:55px;
+font-size:17px;
+}
+.badges{
+text-align:center;
+margin-top:10px;
+}
+.badge{
+display:inline-block;
+background:#ffca28;
+padding:8px 12px;
+margin:4px;
+border-radius:999px;
+font-weight:bold;
+}
+button{
+width:100%;
+padding:15px;
+margin-top:18px;
+border:none;
+border-radius:16px;
+background:#1e88e5;
+color:white;
+font-size:18px;
+font-weight:bold;
+}
+#reward{
+font-size:60px;
+text-align:center;
+display:none;
+animation:pop .5s ease;
+}
+@keyframes pop{
+0%{transform:scale(0)}
+100%{transform:scale(1)}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>🏯 Week 6 Temple Quest</h1>
+<div class="subtitle">Confucianism • Shintoism • Buddhism</div>
+
+<div class="character" id="char">🧙</div>
+
+<div class="score" id="score">Score: 0 / 50</div>
+
+<div class="progress">
+<div class="bar" id="bar"></div>
+</div>
+
+<div class="question" id="question"></div>
+
+<div id="choices"></div>
+
+<div id="reward">🎉</div>
+
+<div id="feedback">
+Tulungan ang explorer sa pag-aaral ng relihiyon!
+</div>
+
+<div class="badges" id="badges"></div>
+
+<button onclick="location.reload()">🔁 Restart Adventure</button>
+
+</div>
+
+<script>
+
+const questions = [
+
+{
+q:"Aling relihiyon ang nagtuturo ng paggalang sa magulang at tamang asal?",
+a:"Confucianism",
+choices:["Shintoism","Confucianism","Buddhism"],
+fact:"📚 Mahalaga sa Confucianism ang disiplina at respeto."
+},
+
+{
+q:"Aling relihiyon ang nagpapahalaga sa kalikasan at kami?",
+a:"Shintoism",
+choices:["Buddhism","Confucianism","Shintoism"],
+fact:"⛩️ Ang Shintoism ay may paniniwala sa mga espiritu ng kalikasan."
+},
+
+{
+q:"Aling relihiyon ang nagtuturo tungkol sa Nirvana?",
+a:"Buddhism",
+choices:["Buddhism","Shintoism","Confucianism"],
+fact:"🪷 Layunin ng Buddhism ang makamit ang Nirvana."
+},
+
+{
+q:"Sino ang nagtatag ng Confucianism?",
+a:"Confucius",
+choices:["Buddha","Confucius","Lao Tzu"],
+fact:"👴 Si Confucius ay isang guro mula sa Tsina."
+},
+
+{
+q:"Ano ang layunin ng Buddhism?",
+a:"Kapayapaan",
+choices:["Digmaan","Kapayapaan","Kayamanan"],
+fact:"☮️ Itinuturo ng Buddhism ang pag-iwas sa pagdurusa."
+},
+
+{
+q:"Anong relihiyon ang nagmula sa Japan?",
+a:"Shintoism",
+choices:["Buddhism","Shintoism","Islam"],
+fact:"🇯🇵 Ang Shintoism ay sinaunang relihiyon ng Japan."
+},
+
+{
+q:"Ano ang simbolo ng Buddhism?",
+a:"Dharma Wheel",
+choices:["Cross","Dharma Wheel","Torii Gate"],
+fact:"☸️ Ang Dharma Wheel ay simbolo ng aral ni Buddha."
+},
+
+{
+q:"Ano ang mahalaga sa Confucianism?",
+a:"Paggalang",
+choices:["Paggalang","Pananakop","Pakikidigma"],
+fact:"🤝 Pinapahalagahan ang respeto sa pamilya at lipunan."
+},
+
+{
+q:"Ano ang tawag sa shrine ng Shintoism?",
+a:"Jinja",
+choices:["Temple","Jinja","Pagoda"],
+fact:"⛩️ Ang Jinja ay sagradong lugar sa Shintoism."
+},
+
+{
+q:"Sino ang nagtatag ng Buddhism?",
+a:"Siddhartha Gautama",
+choices:["Confucius","Siddhartha Gautama","Muhammad"],
+fact:"🪷 Kilala rin siya bilang Buddha."
+}
+
+];
+
+let current = 0;
+let score = 0;
+
+const qBox=document.getElementById("question");
+const choicesDiv=document.getElementById("choices");
+const feedback=document.getElementById("feedback");
+const scoreBox=document.getElementById("score");
+const char=document.getElementById("char");
+const reward=document.getElementById("reward");
+const badges=document.getElementById("badges");
+const bar=document.getElementById("bar");
+
+function updateProgress(){
+scoreBox.textContent="Score: "+score+" / 50";
+bar.style.width=(score/50)*100+"%";
+}
+
+function showReward(icon){
+reward.style.display="block";
+reward.textContent=icon;
+setTimeout(()=>reward.style.display="none",700);
+}
+
+function addBadge(text){
+let b=document.createElement("span");
+b.className="badge";
+b.textContent=text;
+badges.appendChild(b);
+}
+
+function loadQuestion(){
+
+if(current>=questions.length){
+finishGame();
+return;
+}
+
+let q=questions[current];
+
+qBox.textContent=q.q;
+choicesDiv.innerHTML="";
+
+q.choices.sort(()=>Math.random()-0.5);
+
+q.choices.forEach(choice=>{
+
+let div=document.createElement("div");
+div.className="choice";
+div.textContent=choice;
+
+div.onclick=()=>{
+
+document.querySelectorAll(".choice").forEach(x=>x.style.pointerEvents="none");
+
+if(choice===q.a){
+
+div.classList.add("correct");
+score+=5;
+updateProgress();
+
+feedback.innerHTML="✅ Tama!<br>"+q.fact;
+
+char.textContent="😄";
+showReward("⭐");
+
+if(score===15)addBadge("📚 Scholar");
+if(score===30)addBadge("🏯 Temple Master");
+if(score===50)addBadge("👑 Religion Expert");
+
+}else{
+
+div.classList.add("wrong");
+
+feedback.innerHTML="❌ Mali!<br>"+q.fact;
+
+char.textContent="😵";
+showReward("💥");
+
+}
+
+setTimeout(()=>{
+current++;
+char.textContent="🧙";
+loadQuestion();
+},1400);
+
+};
+
+choicesDiv.appendChild(div);
+
+});
+
+}
+
+function finishGame(){
+
+qBox.innerHTML="🎉 Mission Complete!";
+choicesDiv.innerHTML="";
+
+feedback.innerHTML=
+"🌟 Final Score: "+score+"/50<br><br>Natapos mo ang Temple Quest!";
+
+char.textContent="🏆";
+
+badges.innerHTML += '<div class="badge">🎓 AP8 Week 6 Completer</div>';
+
+}
+
+updateProgress();
+loadQuestion();
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fil">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AP8 Week 3 Match Quest</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(#9be7ff,#fff3b0)}
+#app{max-width:430px;min-height:100vh;margin:auto;background:#fffdf5;padding:18px}
+.title{text-align:center;font-size:27px;font-weight:900;color:#ef6c00}
+.subtitle{text-align:center;font-size:15px;margin:8px 0 14px}
+.card{background:white;border-radius:22px;padding:18px;margin:14px 0;box-shadow:0 6px 18px rgba(0,0,0,.13)}
+button{width:100%;padding:14px;border:0;border-radius:15px;background:#1e88e5;color:white;font-size:18px;font-weight:bold;margin-top:10px}
+.hidden{display:none!important}.center{text-align:center}.big{font-size:58px}
+.score{text-align:center;font-size:18px;font-weight:bold;background:#fff3cd;padding:10px;border-radius:14px}
+.fact{background:#e3f2fd;padding:12px;border-radius:14px;font-size:15px;min-height:52px}
+.term{background:#fff;border:3px solid #ff9800;padding:12px;border-radius:14px;text-align:center;font-weight:bold;margin:8px 0;cursor:pointer}
+.term.selected{background:#ffca28}
+.zone{border:3px dashed #1e88e5;border-radius:18px;padding:14px;margin:10px 0;min-height:65px;background:#f7fbff}
+.zone-title{font-weight:bold;color:#1565c0;margin-bottom:6px}
+.correct{background:#66bb6a!important;color:white!important;border-color:#43a047!important}
+.wrong{background:#ef5350!important;color:white!important}
+.badge{display:inline-block;background:#ffca28;padding:8px 12px;border-radius:999px;font-weight:bold;margin:5px}
+.mapbox{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mapitem{background:#f1f8e9;border:2px solid #8bc34a;border-radius:14px;padding:12px;text-align:center;font-weight:bold}
+</style>
+</head>
+<body>
+<div id="app">
+
+<section id="startScreen">
+<div class="title">🗺️ AP8 Week 3 Quest</div>
+<div class="subtitle">Mediterranean, Meso-America, Andes at Pacific</div>
+<div class="center big">🏺🌽⛵</div>
+<div class="card">
+<h2>Mission</h2>
+<p>I-match ang mga ambag, lokasyon, at katangian sa tamang kabihasnan.</p>
+<div class="center">
+<span class="badge">Minoan</span><span class="badge">Mycenaean</span><span class="badge">Olmec</span><span class="badge">Maya</span><span class="badge">Aztec</span><span class="badge">Inca</span><span class="badge">Polynesian</span>
+</div>
+<button id="startBtn">🎮 Simulan ang Match Quest</button>
+</div>
+</section>
+
+<section id="gameScreen" class="hidden">
+<div class="title">🧩 Match Quest</div>
+<div class="score" id="scoreBox">Score: 0 / 20</div>
+<div class="card">
+<h3 id="levelTitle"></h3>
+<p id="instruction"></p>
+<div class="fact" id="feedback">Piliin muna ang term, tapos i-tap ang tamang kahon.</div>
+</div>
+<div class="card"><h3>Mga Term / Ambag</h3><div id="terms"></div></div>
+<div class="card"><h3>Mga Kabihasnan</h3><div id="zones"></div></div>
+</section>
+
+<section id="bonusScreen" class="hidden">
+<div class="title">🗺️ Bonus Map Puzzle</div>
+<div class="card">
+<p><b>I-tap ang tamang rehiyon para sa bawat kabihasnan.</b></p>
+<h2 id="bonusQuestion"></h2>
+<div class="mapbox">
+<div class="mapitem" data-region="Mediterranean">🌊 Mediterranean</div>
+<div class="mapitem" data-region="Mesoamerica">🌽 Mesoamerica</div>
+<div class="mapitem" data-region="Andes">⛰️ Andes</div>
+<div class="mapitem" data-region="Pacific">⛵ Pacific</div>
+</div>
+<p class="fact" id="bonusFeedback">Sagutin ang bonus map challenge.</p>
+</div>
+</section>
+
+<section id="endScreen" class="hidden">
+<div class="title">🏆 Quest Complete!</div>
+<div class="center big">🎉👑</div>
+<div class="card center">
+<h2 id="finalScore"></h2>
+<p id="finalMessage"></p>
+<button onclick="location.reload()">🔁 Play Again</button>
+</div>
+</section>
+
+</div>
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+const rounds=[
+{title:"Level 1: Mediterranean",instruction:"I-match sa Minoan o Mycenaean.",zones:["Minoan","Mycenaean"],items:[
+["Bull-leaping","Minoan","Kilala ang Minoan sa bull-leaping at sining."],
+["Palasyo ng Knossos","Minoan","Ang Knossos ay mahalagang palasyo sa Crete."],
+["Paglalayag at kalakalan","Minoan","Mahusay ang Minoan sa paglalayag at kalakalan."],
+["Agamemnon","Mycenaean","Si Agamemnon ay kaugnay ng Mycenaean."],
+["Trojan War","Mycenaean","Kilala ang Mycenaean dahil sa Trojan War."],
+["Malalakas na kaharian","Mycenaean","Mandirigma at may malalakas na kaharian ang Mycenaean."]
+]},
+{title:"Level 2: Meso-America at Andes",instruction:"I-match sa Olmec, Maya, Aztec o Inca.",zones:["Olmec","Maya","Aztec","Inca"],items:[
+["Malalaking batong ulo","Olmec","Ang Olmec ay kilala sa malalaking batong ulo."],
+["Astronomiya at matematika","Maya","Mahusay ang Maya sa astronomiya at matematika."],
+["Sistema ng pagsulat","Maya","May sistema ng pagsulat ang Maya."],
+["Makapangyarihang mandirigma","Aztec","Ang Aztec ay kilala sa pagiging mandirigma."],
+["Tenochtitlan","Aztec","Ang Tenochtitlan ay mahalagang lungsod ng Aztec."],
+["Quipu","Inca","Gumamit ang Inca ng quipu sa pagtatala."],
+["Andes","Inca","Kilala ang Inca bilang imperyo sa Andes."]
+]},
+{title:"Level 3: Pacific",instruction:"I-match sa Polynesian o Hindi Polynesian.",zones:["Polynesian","Hindi Polynesian"],items:[
+["Mahuhusay na mandaragat","Polynesian","Mahusay ang Polynesian sa paglalayag."],
+["Matitibay na bangka","Polynesian","Gumawa sila ng matitibay na bangka."],
+["Hawaii, Tahiti, New Zealand","Polynesian","Nanirahan sila sa mga pulong ito."],
+["Moai ng Easter Island","Polynesian","Ang Moai ay kaugnay ng Easter Island."],
+["Palasyo ng Knossos","Hindi Polynesian","Ito ay kaugnay ng Minoan."],
+["Quipu","Hindi Polynesian","Ang quipu ay kaugnay ng Inca."]
+]}];
+const bonus=[["Minoan","Mediterranean"],["Mycenaean","Mediterranean"],["Maya","Mesoamerica"],["Aztec","Mesoamerica"],["Inca","Andes"],["Polynesian","Pacific"]];
+let roundIndex=0,score=0,selected=null,remainingItems=[],bonusIndex=0;
+const screens=["startScreen","gameScreen","bonusScreen","endScreen"].map(id=>document.getElementById(id));
+function show(id){screens.forEach(s=>s.classList.add("hidden"));document.getElementById(id).classList.remove("hidden");window.scrollTo(0,0)}
+function updateScore(){document.getElementById("scoreBox").textContent="Score: "+score+" / 20"}
+function startGame(){score=0;roundIndex=0;bonusIndex=0;show("gameScreen");loadRound()}
+function loadRound(){selected=null;updateScore();let r=rounds[roundIndex];remainingItems=[...r.items];document.getElementById("levelTitle").textContent=r.title;document.getElementById("instruction").textContent=r.instruction;document.getElementById("feedback").textContent="Piliin muna ang term, tapos i-tap ang tamang kahon.";renderTerms();renderZones()}
+function renderTerms(){let div=document.getElementById("terms");div.innerHTML="";remainingItems.forEach((item,idx)=>{let t=document.createElement("div");t.className="term";t.textContent=item[0];t.onclick=()=>{document.querySelectorAll(".term").forEach(x=>x.classList.remove("selected"));t.classList.add("selected");selected={item:item,index:idx};document.getElementById("feedback").textContent="Napili: "+item[0]+". I-tap ang tamang kabihasnan."};div.appendChild(t)})}
+function renderZones(){let div=document.getElementById("zones");div.innerHTML="";rounds[roundIndex].zones.forEach(z=>{let box=document.createElement("div");box.className="zone";box.innerHTML='<div class="zone-title">'+z+'</div><div>Tap dito kung ito ang sagot.</div>';box.onclick=()=>checkAnswer(z,box);div.appendChild(box)})}
+function checkAnswer(zone,box){if(!selected){document.getElementById("feedback").textContent="Pumili muna ng term.";return}let correct=selected.item[1];let fact=selected.item[2];if(zone===correct){score++;box.classList.add("correct");document.getElementById("feedback").innerHTML="✅ Tama! <b>"+selected.item[0]+"</b> → "+correct+"<br>"+fact;remainingItems.splice(selected.index,1);selected=null;updateScore();setTimeout(()=>{if(remainingItems.length===0){roundIndex++;if(roundIndex<rounds.length)loadRound();else startBonus()}else{renderTerms();renderZones()}},850)}else{box.classList.add("wrong");document.getElementById("feedback").textContent="❌ Subukan muli.";setTimeout(()=>box.classList.remove("wrong"),600)}}
+function startBonus(){show("bonusScreen");loadBonus()}
+function loadBonus(){let q=bonus[bonusIndex];document.getElementById("bonusQuestion").textContent="Saan nabibilang ang "+q[0]+"?";document.getElementById("bonusFeedback").textContent="Piliin ang tamang rehiyon.";document.querySelectorAll(".mapitem").forEach(e=>e.classList.remove("correct","wrong"))}
+document.querySelectorAll(".mapitem").forEach(el=>{el.onclick=()=>{let answer=el.dataset.region;let correct=bonus[bonusIndex][1];if(answer===correct){score++;el.classList.add("correct");document.getElementById("bonusFeedback").textContent="✅ Tama!";setTimeout(()=>{bonusIndex++;if(bonusIndex<bonus.length)loadBonus();else finishGame()},700)}else{el.classList.add("wrong");document.getElementById("bonusFeedback").textContent="❌ Mali. Subukan muli.";setTimeout(()=>el.classList.remove("wrong"),500)}}});
+function finishGame(){show("endScreen");document.getElementById("finalScore").textContent="Final Score: "+score+" / 20";document.getElementById("finalMessage").textContent=score>=18?"🌟 Napakahusay! Civilization Master ka!":score>=14?"👏 Magaling! Na-master mo ang Week 3 topics!":"📚 Balikan pa ang lesson at subukan muli."}
+document.getElementById("startBtn").onclick=startGame;
+});
+</script>
+</body>
+</html>

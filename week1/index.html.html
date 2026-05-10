@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="fil">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AP8 Week 1 Adventure</title>
+<style>
+*{box-sizing:border-box}
+html,body{
+    margin:0;
+    padding:0;
+    font-family:Arial, sans-serif;
+    background:linear-gradient(180deg,#aeefff,#fff7b0);
+}
+.container{
+    width:100%;
+    max-width:430px;
+    min-height:100vh;
+    margin:auto;
+    background:white;
+    padding:22px 18px;
+}
+.title{
+    text-align:center;
+    font-size:30px;
+    color:#ff7a00;
+    font-weight:900;
+}
+.subtitle{
+    text-align:center;
+    font-size:18px;
+    margin:8px 0 24px;
+}
+.cartoon{
+    text-align:center;
+    font-size:66px;
+    margin:12px 0;
+}
+.card{
+    background:#f8f8f8;
+    border-radius:22px;
+    padding:22px;
+    margin:15px 0;
+    box-shadow:0 8px 24px rgba(0,0,0,.12);
+}
+.bigbtn,.choice{
+    display:block;
+    width:100%;
+    padding:16px;
+    margin-top:12px;
+    border:0;
+    border-radius:16px;
+    background:#238be6;
+    color:white;
+    font-size:19px;
+    cursor:pointer;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+}
+.choice{
+    background:#ffffff;
+    color:#222;
+    border:3px solid #238be6;
+    text-align:left;
+}
+.correct{
+    background:#55c76a!important;
+    color:white!important;
+    border-color:#55c76a!important;
+}
+.wrong{
+    background:#f05a57!important;
+    color:white!important;
+    border-color:#f05a57!important;
+}
+.hidden{display:none!important}
+.progress{
+    text-align:center;
+    font-weight:bold;
+    color:#555;
+    margin-bottom:10px;
+}
+.score{
+    text-align:center;
+    font-size:28px;
+    font-weight:bold;
+    color:#ff7a00;
+}
+.small{
+    text-align:center;
+    font-size:14px;
+    color:#666;
+}
+</style>
+</head>
+<body>
+<main class="container">
+    <section id="startScreen">
+        <div class="title">🌍 AP8 Week 1 Adventure</div>
+        <div class="subtitle">Cartoon Learning Game para sa Araling Panlipunan 8</div>
+        <div class="cartoon">🗺️🌎📚</div>
+        <div class="card">
+            <h2>Mga Topic:</h2>
+            <ul>
+                <li>Seven Continents</li>
+                <li>Anyong Lupa</li>
+                <li>Anyong Tubig</li>
+                <li>Katangiang Pisikal ng Daigdig</li>
+            </ul>
+            <button id="startBtn" class="bigbtn" type="button">🎮 Simulan ang Laro</button>
+        </div>
+        <p class="small">Tip: Kapag galing ZIP sa iPhone, i-open ang index.html sa Safari/Chrome para gumana ang buttons.</p>
+    </section>
+
+    <section id="gameScreen" class="hidden">
+        <div class="title">🌍 AP8 Challenge</div>
+        <div class="card">
+            <div id="progress" class="progress"></div>
+            <h2 id="question"></h2>
+            <div id="choices"></div>
+        </div>
+    </section>
+
+    <section id="resultScreen" class="hidden">
+        <div class="title">Resulta</div>
+        <div class="cartoon">🏆🎉</div>
+        <div class="card">
+            <div id="finalScore" class="score"></div>
+            <p id="message" style="text-align:center;font-size:20px;"></p>
+            <button id="restartBtn" class="bigbtn" type="button">🔁 Maglaro Muli</button>
+        </div>
+    </section>
+</main>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+    const questions = [
+        {question:"🌍 Ilang kontinente mayroon sa daigdig?", choices:["5","6","7","8"], answer:"7"},
+        {question:"🗺️ Ano ang pinakamalaking kontinente?", choices:["Africa","Europe","Asia","Australia"], answer:"Asia"},
+        {question:"🏔️ Ano ang tawag sa mataas na anyong lupa?", choices:["Bundok","Lawa","Ilog","Dagat"], answer:"Bundok"},
+        {question:"🌊 Ano ang anyong tubig na dumadaloy?", choices:["Karagatan","Ilog","Lawa","Golpo"], answer:"Ilog"},
+        {question:"🌎 Anong kontinente matatagpuan ang Pilipinas?", choices:["Europe","Asia","Africa","Australia"], answer:"Asia"},
+        {question:"🏝️ Ano ang anyong lupang napapalibutan ng tubig?", choices:["Tangway","Kapatagan","Pulo","Bulkan"], answer:"Pulo"},
+        {question:"🌋 Ano ang tawag sa bundok na maaaring sumabog?", choices:["Burol","Bulkan","Talampas","Lambak"], answer:"Bulkan"},
+        {question:"🌊 Ano ang pinakamalawak na anyong tubig?", choices:["Lawa","Ilog","Karagatan","Look"], answer:"Karagatan"},
+        {question:"🧭 Ano ang tawag sa pag-aaral ng lokasyon at katangian ng daigdig?", choices:["Heograpiya","Kasaysayan","Ekonomiks","Sosyolohiya"], answer:"Heograpiya"},
+        {question:"🌄 Ano ang malawak at patag na anyong lupa?", choices:["Kapatagan","Bundok","Bulkan","Pulo"], answer:"Kapatagan"}
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+
+    const startScreen = document.getElementById("startScreen");
+    const gameScreen = document.getElementById("gameScreen");
+    const resultScreen = document.getElementById("resultScreen");
+    const startBtn = document.getElementById("startBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const questionEl = document.getElementById("question");
+    const choicesEl = document.getElementById("choices");
+    const progressEl = document.getElementById("progress");
+    const finalScoreEl = document.getElementById("finalScore");
+    const messageEl = document.getElementById("message");
+
+    function showOnly(screen){
+        startScreen.classList.add("hidden");
+        gameScreen.classList.add("hidden");
+        resultScreen.classList.add("hidden");
+        screen.classList.remove("hidden");
+        window.scrollTo(0,0);
+    }
+
+    function startGame(){
+        currentQuestion = 0;
+        score = 0;
+        showOnly(gameScreen);
+        showQuestion();
+    }
+
+    function showQuestion(){
+        const q = questions[currentQuestion];
+        progressEl.textContent = "Tanong " + (currentQuestion + 1) + " sa " + questions.length;
+        questionEl.textContent = q.question;
+        choicesEl.innerHTML = "";
+
+        q.choices.forEach(function(choice){
+            const btn = document.createElement("button");
+            btn.className = "choice";
+            btn.type = "button";
+            btn.textContent = choice;
+            btn.addEventListener("click", function(){
+                checkAnswer(btn, choice);
+            });
+            choicesEl.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selectedBtn, selectedChoice){
+        const correct = questions[currentQuestion].answer;
+        const buttons = choicesEl.querySelectorAll("button");
+
+        buttons.forEach(function(btn){ btn.disabled = true; });
+
+        if(selectedChoice === correct){
+            selectedBtn.classList.add("correct");
+            score++;
+        }else{
+            selectedBtn.classList.add("wrong");
+            buttons.forEach(function(btn){
+                if(btn.textContent === correct){ btn.classList.add("correct"); }
+            });
+        }
+
+        setTimeout(function(){
+            currentQuestion++;
+            if(currentQuestion < questions.length){
+                showQuestion();
+            }else{
+                showResults();
+            }
+        }, 900);
+    }
+
+    function showResults(){
+        showOnly(resultScreen);
+        finalScoreEl.textContent = "Score: " + score + " / " + questions.length;
+
+        if(score === 10){
+            messageEl.textContent = "🌟 Napakahusay! Ikaw ay AP8 Master!";
+        }else if(score >= 7){
+            messageEl.textContent = "👏 Magaling! Ang galing mo sa heograpiya!";
+        }else{
+            messageEl.textContent = "📚 Practice pa! Kaya mo yan!";
+        }
+    }
+
+    startBtn.addEventListener("click", startGame);
+    startBtn.addEventListener("touchend", function(e){ e.preventDefault(); startGame(); }, {passive:false});
+    restartBtn.addEventListener("click", startGame);
+    restartBtn.addEventListener("touchend", function(e){ e.preventDefault(); startGame(); }, {passive:false});
+});
+</script>
+</body>
+</html>

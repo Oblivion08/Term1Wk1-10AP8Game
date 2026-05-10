@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fil">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AP8 Week 4 Escape Room</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(#ffe082,#fff8e1)}
+#app{max-width:430px;margin:auto;min-height:100vh;padding:18px;background:#fffdf7}
+.title{text-align:center;font-size:28px;font-weight:900;color:#d84315}
+.card{background:white;padding:18px;border-radius:22px;margin:14px 0;box-shadow:0 6px 18px rgba(0,0,0,.15)}
+button{width:100%;padding:14px;border:none;border-radius:15px;background:#1e88e5;color:white;font-size:18px;font-weight:bold;margin-top:10px}
+.hidden{display:none!important}.center{text-align:center}.big{font-size:58px}
+.score{text-align:center;font-size:19px;font-weight:bold;background:#fff3cd;padding:10px;border-radius:14px}
+.inventory{background:#ede7f6;padding:12px;border-radius:14px;font-size:15px;font-weight:bold;margin:12px 0}
+.dialogue{background:#e3f2fd;padding:12px;border-radius:14px;margin-top:10px;min-height:55px}
+.option{background:#fff;border:3px solid #90caf9;padding:12px;border-radius:14px;margin:8px 0;font-weight:bold}
+.correct{background:#66bb6a!important;color:white!important;border-color:#43a047!important}
+.wrong{background:#ef5350!important;color:white!important;border-color:#c62828!important}
+.badge{display:inline-block;background:#ffca28;padding:8px 12px;border-radius:999px;font-weight:bold;margin:5px}
+</style>
+</head>
+<body>
+<div id="app">
+<section id="startScreen">
+<div class="title">🏺 AP8 Escape Room</div>
+<div class="center big">🔓🏛️📜</div>
+<div class="card">
+<h2>Week 4 Mission</h2>
+<p>Sagutin ang puzzle rooms tungkol sa lipunang Sumerian, Egyptian, Varna/Caste, Sparta, at Athens.</p>
+<div class="center"><span class="badge">Sumerian</span><span class="badge">Egyptian</span><span class="badge">Varna</span><span class="badge">Greek</span></div>
+<button id="startBtn">🎮 Simulan ang Escape Quest</button>
+</div>
+</section>
+
+<section id="gameScreen" class="hidden">
+<div class="title">🗝️ Escape Quest</div>
+<div class="score" id="scoreBox">⭐ Score: 0 / 8</div>
+<div class="inventory" id="inventory">🎒 Inventory: Wala pa</div>
+<div class="card">
+<h2 id="roomTitle"></h2>
+<p id="roomStory"></p>
+<h3 id="question"></h3>
+<div id="choices"></div>
+<div class="dialogue" id="dialogue">💬 Piliin ang tamang sagot para ma-unlock ang room.</div>
+</div>
+</section>
+
+<section id="endScreen" class="hidden">
+<div class="title">🏆 Escape Complete!</div>
+<div class="center big">🎉👑</div>
+<div class="card center">
+<h2 id="finalScore"></h2>
+<p id="finalMessage"></p>
+<div><span class="badge">🏺 Temple Explorer</span><span class="badge">📚 AP8 Master</span><span class="badge">🗝️ Escape Champion</span></div>
+<button onclick="location.reload()">🔁 Play Again</button>
+</div>
+</section>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+var rooms=[
+{title:"🏺 Room 1: Lipunang Sumerian",story:"Nasa harap mo ang isang lumang cuneiform tablet.",question:"Sino ang pinuno ng lungsod-estado sa lipunang Sumerian?",choices:["Hari o Lugal","Pari","Magsasaka","Alipin"],answer:"Hari o Lugal",artifact:"📜 Cuneiform Tablet"},
+{title:"👑 Room 2: Lipunang Egyptian",story:"May lihim na pinto sa loob ng pyramid chamber.",question:"Sino ang itinuturing na hari at diyos ng Egypt?",choices:["Eskriba","Pari","Pharaoh","Mamamayan"],answer:"Pharaoh",artifact:"🏺 Golden Scarab"},
+{title:"✒️ Room 3: Eskriba",story:"May nakasulat na tala sa papyrus.",question:"Sino ang nagtatala ng buwis, ani, at batas sa Egypt?",choices:["Eskriba","Alipin","Mandirigma","Magsasaka"],answer:"Eskriba",artifact:"✒️ Scribe Pen"},
+{title:"🪔 Room 4: Sistemang Varna",story:"May apat na hagdan ng lipunan sa harap mo.",question:"Anong varna ang binubuo ng mga pari at guro?",choices:["Kshatriya","Brahmin","Shudra","Vaishya"],answer:"Brahmin",artifact:"🔑 Varna Key"},
+{title:"💰 Room 5: Vaishya",story:"May palengke at bukirin sa loob ng templo.",question:"Anong varna ang binubuo ng mangangalakal at magsasaka?",choices:["Vaishya","Brahmin","Shudra","Kshatriya"],answer:"Vaishya",artifact:"💰 Merchant Coin"},
+{title:"⚔️ Room 6: Sparta",story:"Narating mo ang training grounds ng Sparta.",question:"Ano ang pangunahing katangian ng Sparta?",choices:["Demokrasya","Militarismo","Sining","Kalakalan"],answer:"Militarismo",artifact:"🛡️ Spartan Shield"},
+{title:"🏛️ Room 7: Athens",story:"Nasa bulwagan ka ng mga mamamayan ng Athens.",question:"Ano ang kilala sa Athens?",choices:["Demokrasya","Militarismo","Imperyo","Pagsasaka"],answer:"Demokrasya",artifact:"📘 Democracy Scroll"},
+{title:"🌍 Room 8: Pagkakapantay-pantay",story:"Huling pinto na ito bago ka makalabas.",question:"Ano ang mahalagang aral mula sa sinaunang lipunan?",choices:["Respeto sa lahat ng tao","Pagmamataas","Pang-aalipin","Hindi pagtutulungan"],answer:"Respeto sa lahat ng tao",artifact:"⭐ Equality Badge"}];
+
+var current=0,score=0,inventory=[];
+function show(id){["startScreen","gameScreen","endScreen"].forEach(function(x){document.getElementById(x).classList.add("hidden")});document.getElementById(id).classList.remove("hidden");window.scrollTo(0,0)}
+function startGame(){current=0;score=0;inventory=[];show("gameScreen");loadRoom()}
+function updateInventory(){document.getElementById("inventory").innerHTML=inventory.length?"🎒 Inventory: "+inventory.join(" | "):"🎒 Inventory: Wala pa"}
+function loadRoom(){
+var room=rooms[current];
+document.getElementById("scoreBox").innerHTML="⭐ Score: "+score+" / "+rooms.length;
+document.getElementById("roomTitle").innerHTML=room.title;
+document.getElementById("roomStory").innerHTML=room.story;
+document.getElementById("question").innerHTML=room.question;
+document.getElementById("dialogue").innerHTML="💬 Piliin ang tamang sagot para ma-unlock ang room.";
+var choicesDiv=document.getElementById("choices"); choicesDiv.innerHTML="";
+room.choices.forEach(function(choice){
+var btn=document.createElement("div"); btn.className="option"; btn.innerHTML=choice;
+btn.onclick=function(){checkAnswer(btn,choice)}; choicesDiv.appendChild(btn);
+});
+updateInventory();
+}
+function checkAnswer(btn,choice){
+var room=rooms[current]; var options=document.querySelectorAll(".option");
+options.forEach(function(o){o.style.pointerEvents="none"});
+if(choice===room.answer){
+btn.classList.add("correct"); score++; inventory.push(room.artifact);
+document.getElementById("dialogue").innerHTML="✅ Tama! Nakuha mo ang "+room.artifact;
+setTimeout(function(){current++; if(current<rooms.length){loadRoom()}else{finishGame()}},900);
+}else{
+btn.classList.add("wrong"); document.getElementById("dialogue").innerHTML="❌ Mali. Subukan muli.";
+setTimeout(function(){options.forEach(function(o){o.style.pointerEvents="auto";o.classList.remove("wrong")})},800);
+}}
+function finishGame(){
+show("endScreen");
+document.getElementById("finalScore").innerHTML="Final Score: "+score+" / "+rooms.length;
+document.getElementById("finalMessage").innerHTML="🌟 Natapos mo ang Week 4 Escape Room!";
+}
+document.getElementById("startBtn").onclick=startGame;
+});
+</script>
+</body>
+</html>
